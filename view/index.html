@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<!--    Content-Security-Policy", "default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'-->
+    <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'">
+    <title>schedule system</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+
+<body>
+<div id="app">
+    <div>
+        <el-table
+                :data="tableData"
+                style="width: 100%">
+            <el-table-column
+                    type="index"
+                    width="50">
+            </el-table-column>
+            <el-table-column
+                    prop="id"
+                    label="代号"
+                    v-if="show">
+            </el-table-column>
+            <el-table-column
+                    prop="name"
+                    label="任务名称">
+            </el-table-column>
+            <el-table-column
+                    prop="code"
+                    label="任务代号">
+            </el-table-column>
+            <el-table-column
+                    prop="status"
+                    label="状态">
+                <template slot-scope="scope">
+                    <span>{{scope.row.status|states()}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    prop="data"
+                    label="任务参数">
+            </el-table-column>
+            <el-table-column
+                    prop="cronExpress"
+                    label="任务cron表达式">
+            </el-table-column>
+            <el-table-column
+                    prop="comment"
+                    label="备注">
+            </el-table-column>
+            <el-table-column
+                    prop="lastResult"
+                    label="结果">
+            </el-table-column>
+            <el-table-column
+                    prop="nextRunTime"
+                    label="下次执行时间">
+                <template slot-scope="scope">
+                    <span>{{scope.row.nextRunTime|format('YYYY-MM-DD HH:mm:ss')}}</span>
+                </template>
+            </el-table-column>
+            <el-table-column
+                    label="操作">
+                <template slot-scope="scope">
+                    <el-button @click="handleClick1(scope.row)" type="text" size="small">启动</el-button>
+                    <el-button @click="handleClick2(scope.row)" type="text" size="small">停止</el-button>
+                    <el-button @click="handleClick3(scope.row)" type="text" size="small">执行一次</el-button>
+                    <el-button @click="handleClick4(scope.row)" type="text" size="small">编辑</el-button>
+                    <!-- 编辑时候的弹出层 -->
+                    <el-dialog title="编辑用户"
+                               :visible.sync="dialogFormVisible"
+                               width="500px"
+                               top="200px">
+                        <el-form :model="form">
+                            <el-form-item label="">
+                                <el-input v-model="form.id"
+                                          v-if="show"></el-input>
+                            </el-form-item>
+                            <el-form-item label="名称">
+                                <el-input v-model="form.name"
+                                          label-width="auto"
+                                          disabled></el-input>
+                            </el-form-item>
+                            <el-form-item label="代号">
+                                <el-input v-model="form.code"
+                                          label-width="auto"
+                                          disabled></el-input>
+                            </el-form-item>
+                            <el-form-item label="cron表达式">
+                                <el-input v-model="form.cron"
+                                          label-width="auto"
+                                          placeholder="请输入内容"
+                                          auto-complete="off"></el-input>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer"
+                             class="dialog-footer">
+                            <el-button @click="dialogFormVisible = false">取 消</el-button>
+                            <el-button type="primary"
+                                       @click="handleSet(scope.$index, scope.row)">确 定
+                            </el-button>
+                        </div>
+                    </el-dialog>
+                </template>
+            </el-table-column>
+        </el-table>
+    </div>
+
+
+</div>
+
+<!-- https://yaw.ee/2246.html -->
+<!-- 在你的网站底部</body>之前添加以下代码,注意引用资源路径 -->
+
+<script src="/static/js/vue.js" type="application/javascript"></script>
+<script src="/static/js/element-ui.js"></script>
+<script src="/static/js/axios.js"></script>
+<script src="/static/js/moment.js"></script>
+<script>
+    let app = new Vue({
+        el: '#app',
+        data: {
+            labellocaltion: "left",
+            show: false,
+            dialogFormVisible: false,
+            form: {
+                name: "",
+                code: "",
+                cron: "",
+                id: 0
+            },
+            formLabelWidth: '50px',
+            tableData: [],
+        },
+        mounted() {
+            console.log('asdaasda')
+            // L2Dwidget.init(this.config);
+            this.getdata();
+        },
+        methods: {
+            getdata() {
+                axios.get('http://127.0.0.1:3011/schedule/getAllTasks').then(res => {
+                    console.log('1111', res.data.data.nextRunTime, res.data);
+                    res.data.data.nextRunTime = moment(res.data.data.nextRunTime).format('YYYY-MM-DD HH:mm:ss');
+                    console.log(res.data.data.nextRunTime);
+                    this.tableData = res.data.data;
+                })
+            },
+            handleClick1(val) {
+                console.log(val);
+                axios.get('http://127.0.0.1:3011/schedule/startTask?id=' + val.id).then(res => {
+                    console.log(res);
+                    this.getdata();
+                })
+            },
+            handleClick2(val) {
+                console.log(val);
+                axios.get('http://127.0.0.1:3011/schedule/stopTask?id=' + val.id).then(res => {
+                    console.log(res);
+                    this.getdata();
+                })
+            },
+            handleClick3(val) {
+                console.log(val);
+                axios.get('http://127.0.0.1:3011/schedule/runTaskOnce?id=' + val.id).then(res => {
+                    console.log(res);
+                    this.getdata();
+                })
+            },
+            handleClick4(val) {
+                this.dialogFormVisible = true; //开启弹出层
+                //对弹出层中的表单赋值
+                this.form.name = val.name;
+                this.form.code = val.code;
+                this.form.cron = val.cronExpress;
+            },
+            handleSet(index, row) {
+                console.log(row, 'csgtest', this.form);
+                let data = {
+                    id: row.id,
+                    cron: this.form.cron
+                }
+                axios.post('http://127.0.0.1:3011/schedule/editTask', data).then(res => {
+                    console.log(res);
+                    if (res.data.code === 200) {
+                        this.$message("修改成功！");
+                        this.getdata();
+                        this.dialogFormVisible = false;
+                    } else {
+                        this.$message(res.data);
+                    }
+                });
+            }
+        }
+    });
+    Vue.filter("format", function (input, fmtstring) {
+        // 使用momentjs这个日期格式化类库实现日期的格式化功能
+        if (input) {
+            return moment(input).format(fmtstring);
+        }
+    });
+    //状态 1.running 2.waiting 3.stop
+    Vue.filter("states", function (input) {
+        // 使用momentjs这个日期格式化类库实现日期的格式化功能
+        console.log(input, 'input');
+        switch (input) {
+            case 1:
+                return 'running';
+                break;
+            case 2:
+                return 'waiting'
+                break;
+            case 3:
+                return 'stop';
+            default:
+                return '';
+        }
+    });
+    //黑猫
+
+    //业务
+    // $.ajax({
+    //     url: "http://127.0.0.1:3011/schedule/getAllTasks",    //请求的url地址
+    //     type: "get",
+    //     success: function (result) {
+    //         console.log('csgtest', result);
+    //         this
+    //         for (let i = 0; i < result.data.length; i++) {
+    //             console.log(i);
+    //             $('.table').append(
+    //                 `<tr>
+    //                 <td>${i + 1}</td>
+    //                 <td>${result.data[i].name || ''}</td>
+    //                 <td>${result.data[i].code || ''}</td>
+    //                 <td>${result.data[i].status || ''}</td>
+    //                 <td>${result.data[i].data || ''}</td>
+    //                 <td>${result.data[i].cronExpress || ''}</td>
+    //                 <td>${result.data[i].comment || ''}</td>
+    //                 <td>${result.data[i].lastResult || ''}</td>
+    //                 <td>${result.data[i].nextRunTime || ''}</td>
+    //                 <td>
+    //                     <button type="button" class="btn btn-link start">启动</button>
+    //                     <button type="button" class="btn btn-link stop">停止</button>
+    //                     <button type="button" class="btn btn-link" id="once">执行一次</button>
+    //                     <button type="button" class="btn btn-link" id="edit">编辑</button>
+    //                 </td>
+    //               </tr>`
+    //             )
+    //         }
+    //         $('#start').click(function () {
+    //             console.log('click')
+    //             // $.ajax({
+    //             //
+    //             // })
+    //         })
+    //
+    //     },
+    // });
+
+
+    // $('#start').onclick(function () {
+    //     console.log('onclick')
+    //     $.ajax({
+    //
+    //     })
+    // })
+</script>
+</body>
+
+</html>

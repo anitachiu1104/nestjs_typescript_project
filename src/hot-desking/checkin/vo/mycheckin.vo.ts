@@ -1,0 +1,27 @@
+export interface MyCheckinVo {
+        bookingId:number,
+        //大楼名称
+        buName:string,
+        buId:number,
+        //楼层名称
+        flName:string,
+        flId:number,
+        //区域名称
+        areaName:string,
+        //工位号
+        spaceCode:string,
+        spaceId:number,
+        //开始时间
+        startTime:string,
+        //结束时间
+        endTime:string,
+        //用户名
+        stName:string,
+        //预定时间
+        bookTime:string,
+        //状态
+        state:string,
+        type:number,
+        //签到时间
+        createTime:string;
+}

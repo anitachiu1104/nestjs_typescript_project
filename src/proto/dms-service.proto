@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package wism_dms;
+
+service DmsService {
+    rpc test (TestRequest) returns (TestResponse) {}
+    rpc test2 (TestRequest) returns (TestResponse) {}
+}
+
+
+message TestRequest {
+    string tenantId = 1;
+    string p = 2;
+}
+
+
+message TestResponse {
+    int32 code = 1;
+    string message = 2; 
+}
